@@ -70,6 +70,7 @@ class AutoGetServerList: NSObject {
                 
             }
             profileMgr.save()
+            ServerProfileManager.instance.refreshPing()
             print("Success Server Lists")
             success()
         }
