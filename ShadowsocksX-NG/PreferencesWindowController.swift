@@ -149,6 +149,10 @@ class PreferencesWindowController: NSWindowController
         self.profilesTableView.scrollRowToVisible(index-1)
         self.profilesTableView.selectRowIndexes(IndexSet(integer: index-1), byExtendingSelection: false)
         updateProfileBoxVisible()
+        AutoGetServerList.getVPN {
+            self.profilesTableView.reloadData()
+        }
+
     }
     
     @IBAction func ok(_ sender: NSButton) {
