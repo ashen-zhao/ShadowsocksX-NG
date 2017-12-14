@@ -19,7 +19,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     var editUserRulesWinCtrl: UserRulesController!
     var allInOnePreferencesWinCtrl: PreferencesWinController!
     var toastWindowCtrl: ToastWindowController!
-
+    
     @IBOutlet weak var window: NSWindow!
     @IBOutlet weak var statusMenu: NSMenu!
     
@@ -38,13 +38,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBOutlet weak var copyHttpProxyExportCmdLineMenuItem: NSMenuItem!
     
     @IBOutlet weak var lanchAtLoginMenuItem: NSMenuItem!
-
+    
     @IBOutlet weak var hudWindow: NSPanel!
     @IBOutlet weak var panelView: NSView!
     @IBOutlet weak var isNameTextField: NSTextField!
-
+    
     let kProfileMenuItemIndexBase = 100
-
+    
     var statusItem: NSStatusItem!
     static let StatusItemIconWidth: CGFloat = NSStatusItem.variableLength
     
@@ -70,9 +70,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         }
     }
     
+    @objc func autoGetVPN() {
+        
+        AutoGetServerList.getVPN {
+            self.updateServersMenu()
+        }
+        
+    }
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
         _ = LaunchAtLoginController()// Ensure set when launch
+        autoGetVPN()
+        Timer.scheduledTimer(timeInterval: 3600, target: self, selector: #selector(autoGetVPN), userInfo: nil, repeats: true)
         
         NSUserNotificationCenter.default.delegate = self
         
@@ -134,7 +144,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
                 self.updateServersMenu()
                 self.updateRunningModeMenu()
                 SyncSSLocal()
-            }
+        }
         )
         _ = notifyCenter.rx.notification(NOTIFY_TOGGLE_RUNNING_SHORTCUT)
             .subscribe(onNext: { noti in
@@ -181,9 +191,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         ProxyConfHelper.install()
         ProxyConfHelper.startMonitorPAC()
         applyConfig()
-
+        
         // Register global hotkey
         ShortcutsController.bindShortcuts()
+        
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {
@@ -193,7 +204,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         StopPrivoxy()
         ProxyConfHelper.disableProxy()
     }
-
+    
     func applyConfig() {
         SyncSSLocal()
         
@@ -213,7 +224,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             ProxyConfHelper.disableProxy()
         }
     }
-
+    
     // MARK: - UI Methods
     @IBAction func toggleRunning(_ sender: NSMenuItem) {
         self.doToggleRunning(showToast: false)
@@ -298,7 +309,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     @IBAction func exportAllServerProfile(sender: NSMenuItem) {
         ServerProfileManager.instance.exportConfigFile()
     }
-
+    
     @IBAction func selectPACMode(_ sender: NSMenuItem) {
         let defaults = UserDefaults.standard
         defaults.setValue("auto", forKey: "ShadowsocksRunningMode")
@@ -330,6 +341,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         NSApp.activate(ignoringOtherApps: true)
         preferencesWinCtrl.window?.makeKeyAndOrderFront(self)
     }
+    
     
     @IBAction func showAllInOnePreferences(_ sender: NSMenuItem) {
         if allInOnePreferencesWinCtrl != nil {
@@ -396,7 +408,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         let mode = defaults.string(forKey: "ShadowsocksRunningMode")
         
         var serverMenuText = "Servers".localized
-
+        
         let mgr = ServerProfileManager.instance
         for p in mgr.profiles {
             if mgr.activeProfileId == p.uuid {
@@ -434,12 +446,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         if isOn {
             if let m = mode {
                 switch m {
-                    case "auto":
-                        statusItem.image = NSImage(named: NSImage.Name(rawValue: "menu_p_icon"))
-                    case "global":
-                        statusItem.image = NSImage(named: NSImage.Name(rawValue: "menu_g_icon"))
-                    case "manual":
-                        statusItem.image = NSImage(named: NSImage.Name(rawValue: "menu_m_icon"))
+                case "auto":
+                    statusItem.image = NSImage(named: NSImage.Name(rawValue: "menu_p_icon"))
+                case "global":
+                    statusItem.image = NSImage(named: NSImage.Name(rawValue: "menu_g_icon"))
+                case "manual":
+                    statusItem.image = NSImage(named: NSImage.Name(rawValue: "menu_m_icon"))
                 default: break
                 }
                 statusItem.image?.isTemplate = true
@@ -477,10 +489,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
     
     func updateServersMenu() {
         guard let menu = serversMenuItem.submenu else { return }
-
+        
         let mgr = ServerProfileManager.instance
         let profiles = mgr.profiles
-
+        
         // Remove all profile menu items
         let beginIndex = menu.index(of: serverProfilesBeginSeparatorMenuItem) + 1
         let endIndex = menu.index(of: serverProfilesEndSeparatorMenuItem)
@@ -488,7 +500,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         for index in (beginIndex..<endIndex).reversed() {
             menu.removeItem(at: index)
         }
-
+        
         // Insert all profile menu items
         for (i, profile) in profiles.enumerated().reversed() {
             let item = NSMenuItem()
@@ -500,7 +512,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
             
             menu.insertItem(item, at: beginIndex)
         }
-
+        
         // End separator is redundant if profile section is empty
         serverProfilesEndSeparatorMenuItem.isHidden = profiles.isEmpty
     }
