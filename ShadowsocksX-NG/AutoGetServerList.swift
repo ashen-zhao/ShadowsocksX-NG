@@ -50,6 +50,9 @@ class AutoGetServerList: NSObject {
                 let pwd = (str as NSString).substring(with: checkingRes.range(at: 3))
                 let style = (str as NSString).substring(with: checkingRes.range(at: 4))
                 
+                if port == "" {
+                    continue
+                }
                 let p = ServerProfile()
                 
                 p.serverHost = ip
