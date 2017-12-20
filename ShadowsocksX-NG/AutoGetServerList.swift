@@ -50,10 +50,13 @@ class AutoGetServerList: NSObject {
                 let pwd = (str as NSString).substring(with: checkingRes.range(at: 3))
                 let style = (str as NSString).substring(with: checkingRes.range(at: 4))
                 
+                if ip == "" {
+                    continue
+                }
                 let p = ServerProfile()
                 
                 p.serverHost = ip
-                p.serverPort = uint16(port)!
+                p.serverPort = uint16(port == "" ? "0" : port)!
                 p.password = pwd
                 p.method = style
                 p.remark = name
@@ -64,7 +67,7 @@ class AutoGetServerList: NSObject {
                         p.uuid = pf.uuid
                     }
                 }
-                if pwd != "" {
+                if port != "" && pwd != "" {
                     profileMgr.profiles.append(p)
                 }
                 
