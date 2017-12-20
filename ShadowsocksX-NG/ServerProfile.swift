@@ -340,5 +340,6 @@ class ServerProfile: NSObject, NSCopying {
         }, failure: {
             NSLog("Ping %@ fail", self.serverHost)
         })
+        
     }
 }
