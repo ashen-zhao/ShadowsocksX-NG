@@ -19,9 +19,7 @@ class AutoGetServerList: NSObject {
         let session = URLSession(configuration: congiguration)
         let task = session.dataTask(with: request, completionHandler: { (data, response, error)->Void in
             if error == nil{
-                DispatchQueue.main.async {
-                    self.check(String(data: data!, encoding: String.Encoding.utf8)!, success: success)
-                }
+                self.check(String(data: data!, encoding: String.Encoding.utf8)!, success: success)
             }
         })
         
@@ -70,7 +68,6 @@ class AutoGetServerList: NSObject {
                 if port != "" && pwd != "" {
                     profileMgr.profiles.append(p)
                 }
-                
             }
             profileMgr.save()
             ServerProfileManager.instance.refreshPing()
